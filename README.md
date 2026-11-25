@@ -19,6 +19,7 @@ Aplicativo para Windows 10/11 que lê as especificações do computador, diagnos
 | **Otimizações** | 27 ajustes em 6 categorias, com perfis *Recomendado*, *Gamer*, *Notebook* e *Máximo*. Cada item mostra risco, ganho real esperado e se precisa reiniciar. |
 | **Limpeza** | Temporários, cache do Windows Update, Otimização de Entrega, relatórios de erro, miniaturas, cache de navegadores (sem apagar senhas/histórico), cache de shaders, logs antigos e Lixeira. |
 | **Inicialização** | Liga/desliga programas da inicialização (mesmo mecanismo do Gerenciador de Tarefas), com sugestão para cada um (manter / pode desativar). |
+| **Atualizações** | Lista os programas desatualizados pelo **winget** (gerenciador oficial do Windows) e atualiza os selecionados em modo silencioso, mostrando o resultado de cada um. Mostra a idade do driver de vídeo de cada placa e abre o programa certo do fabricante (NVIDIA App, AMD Adrenalin, Intel DSA). |
 | **Ferramentas** | Ponto de restauração, SFC, DISM, limpeza do WinSxS, TRIM/desfragmentação, chkdsk, flush DNS, reset de rede, relatórios de bateria e energia, atalhos do Windows. |
 | **Backup e restauração** | Lista tudo o que o app alterou e desfaz item por item ou tudo de uma vez. |
 

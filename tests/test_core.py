@@ -125,6 +125,56 @@ def test_sensors_read_does_not_crash():
     assert "gpus" in r and "cpu_temp" in r
 
 
+WINGET_EN = """Name                 Id                     Version    Available Source
+-------------------------------------------------------------------------
+App Installer        Microsoft.AppInstaller 1.29.379.0 1.29.380  winget
+Some Tool            Vendor.Tool            Unknown    2.0       winget
+2 upgrades available.
+
+The following packages have an upgrade available, but require explicit targeting for upgrade:
+Name    Id              Version  Available Source
+-------------------------------------------------
+Discord Discord.Discord 1.0.9269 1.0.9270  winget
+"""
+
+WINGET_PT = """Nome              ID              Versão  Disponível Origem
+-----------------------------------------------------------
+微信 WeChat       Tencent.WeChat  3.9.0   3.9.1      winget
+Programa Ágil      Foo.Bar         1.0     1.1        winget
+2 atualizações disponíveis.
+"""
+
+
+def test_winget_parser():
+    from otimizador.core import updates as U
+
+    pk = U.parse_upgrade_table(WINGET_EN)
+    assert [p.id for p in pk] == ["Microsoft.AppInstaller", "Vendor.Tool", "Discord.Discord"]
+    assert pk[0].version == "1.29.379.0" and pk[0].available == "1.29.380" and pk[0].suggested
+    assert pk[1].unknown_version and not pk[1].suggested
+    assert pk[2].explicit and not pk[2].suggested
+    assert U.order_for_install(pk)[-1].id == "Microsoft.AppInstaller"
+    pt = U.parse_upgrade_table(WINGET_PT)
+    assert [(p.name, p.id, p.available) for p in pt] == [("微信 WeChat", "Tencent.WeChat", "3.9.1"),
+                                                          ("Programa Ágil", "Foo.Bar", "1.1")]
+    assert U.parse_upgrade_table("No installed package found matching input criteria.") == []
+
+
+def test_winget_exit_codes_and_drivers():
+    import datetime as dt
+
+    from otimizador.core import updates as U
+
+    assert U.is_success(0) and U.exit_message(0) == "Atualizado"
+    assert U.exit_message(-1978334975) == U.EXIT_MESSAGES[0x8A150101]  # valor com sinal
+    assert "0x8A150999" in U.exit_message(0x8A150999)
+    specs = {"gpu": [{"name": "NVIDIA GeForce RTX 3060", "driver": "31.0", "driver_date": "2025-01-01"},
+                     {"name": "Microsoft Basic Display Adapter"}]}
+    d = U.gpu_drivers(specs, today=dt.date(2026, 6, 1))
+    assert d[0]["vendor"] == "nvidia" and d[0]["status"] == "old" and "nvidia" in d[0]["url"]
+    assert d[1]["status"] == "missing"
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

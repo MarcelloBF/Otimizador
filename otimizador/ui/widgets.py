@@ -71,11 +71,24 @@ class PageHeader(ctk.CTkFrame):
         super().__init__(master, fg_color="transparent")
         self.grid_columnconfigure(0, weight=1)
         ctk.CTkLabel(self, text=title, font=font(24, "bold"), text_color=TEXT, anchor="w").grid(row=0, column=0, sticky="w")
+        self.sub = None
         if subtitle:
-            ctk.CTkLabel(self, text=subtitle, font=font(13), text_color=MUTED, anchor="w", justify="left",
-                         wraplength=620).grid(row=1, column=0, sticky="w", pady=(2, 0))
+            self.sub = ctk.CTkLabel(self, text=subtitle, font=font(13), text_color=MUTED, anchor="w", justify="left",
+                                    wraplength=620)
+            self.sub.grid(row=1, column=0, sticky="w", pady=(2, 0))
         self.actions = ctk.CTkFrame(self, fg_color="transparent", width=1, height=1)
         self.actions.grid(row=0, column=1, rowspan=2, sticky="e")
+        self.bind("<Configure>", self._rewrap, add="+")
+
+    def _rewrap(self, _event=None):
+        """Quebra o subtítulo antes dos botões do cabeçalho, em qualquer largura de janela."""
+        if self.sub is None:
+            return
+        scale = self._get_widget_scaling()
+        free = (self.winfo_width() - self.actions.winfo_reqwidth()) / scale - 24
+        wrap = int(max(320, min(720, free)))
+        if wrap != self.sub.cget("wraplength"):
+            self.sub.configure(wraplength=wrap)
 
 
 def button(master, text, command, kind="primary", width=140, **kw):
