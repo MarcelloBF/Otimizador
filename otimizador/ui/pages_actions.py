@@ -64,7 +64,8 @@ def one_click_optimize(app):
            f"{'• Criar ponto de restauração' + chr(10) if admin else ''}"
            f"• Aplicar {len(items)} otimizações seguras:\n" + "\n".join(f"     – {t.name}" for t in items)
            + f"\n• Limpar arquivos temporários e caches ({len(safe_clean)} categorias, a Lixeira não é tocada)\n\n"
-           "Tudo pode ser desfeito na página Backup e restauração. Continuar?")
+           "Tudo pode ser desfeito na página Backup e restauração.\n"
+           "Dica: para medir o ganho, rode antes o teste da página Desempenho.\n\nContinuar?")
     if not admin:
         msg += "\n\n(Sem administrador: itens de sistema serão pulados.)"
     if not messagebox.askyesno(APP_NAME, msg):

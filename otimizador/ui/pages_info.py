@@ -8,6 +8,7 @@ import customtkinter as ctk
 import psutil
 
 from ..core import sysinfo, tweaks
+from ..core.sensors import Sensors
 from ..core.analyzer import Rec
 from ..core.utils import fmt_bytes, fmt_duration, open_url
 from . import widgets as W
@@ -69,7 +70,7 @@ class DashboardPage(Page):
         W.button(self.header.actions, "⚡ Otimizar agora", self._one_click, "primary", width=170).pack(side="left")
 
         b = self.body
-        b.grid_columnconfigure((0, 1, 2, 3), weight=1, uniform="c")
+        b.grid_columnconfigure((0, 1, 2, 3, 4), weight=1, uniform="c")
 
         # --- Nota + resumo
         score_card = W.Card(b)
@@ -82,28 +83,38 @@ class DashboardPage(Page):
         self.issues_lbl.grid(row=2, column=0, pady=(0, 14))
 
         self.summary = W.Card(b, "Seu computador")
-        self.summary.grid(row=0, column=1, columnspan=3, sticky="nsew", padx=6, pady=6)
+        self.summary.grid(row=0, column=1, columnspan=4, sticky="nsew", padx=6, pady=6)
 
         # --- Monitores ao vivo
         self.meters = {}
-        for i, (key, label, color) in enumerate([("cpu", "Processador", W.ACCENT), ("ram", "Memória RAM", "#a855f7"),
-                                                 ("disk", "Disco (leitura+escrita)", W.GREEN), ("net", "Rede (down+up)", W.YELLOW)]):
+        self.temps = {}
+        for i, (key, label, color) in enumerate([("cpu", "Processador", W.ACCENT), ("gpu", "Placa de vídeo", W.RED),
+                                                 ("ram", "Memória RAM", "#a855f7"), ("disk", "Disco (leit.+escr.)", W.GREEN),
+                                                 ("net", "Rede (down+up)", W.YELLOW)]):
             c = W.Card(b)
             c.grid(row=1, column=i, sticky="nsew", padx=6, pady=6)
             ctk.CTkLabel(c, text=label, font=W.font(12), text_color=W.MUTED, anchor="w").grid(row=0, column=0, sticky="w", padx=14, pady=(12, 0))
             val = ctk.CTkLabel(c, text="—", font=W.font(22, "bold"), text_color=W.TEXT, anchor="w")
             val.grid(row=1, column=0, sticky="w", padx=14)
+            if key in ("cpu", "gpu"):
+                t = ctk.CTkLabel(c, text="", font=W.font(13, "bold"), text_color=W.MUTED, anchor="e")
+                t.grid(row=1, column=0, sticky="e", padx=14)
+                self.temps[key] = t
             sub = ctk.CTkLabel(c, text="", font=W.font(11), text_color=W.MUTED, anchor="w")
             sub.grid(row=2, column=0, sticky="w", padx=14)
             spark = W.Sparkline(c, color=color, height=60)
             spark.grid(row=3, column=0, sticky="ew", padx=10, pady=(4, 12))
             self.meters[key] = (val, sub, spark)
+        try:
+            self.sensors = Sensors()
+        except Exception:  # noqa: BLE001
+            self.sensors = None
 
         # --- Problemas + processos
         self.problems = W.Card(b, "Principais pontos de atenção")
-        self.problems.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=6, pady=6)
+        self.problems.grid(row=2, column=0, columnspan=3, sticky="nsew", padx=6, pady=6)
         self.procs = W.Card(b, "Programas usando mais memória")
-        self.procs.grid(row=2, column=2, columnspan=2, sticky="nsew", padx=6, pady=6)
+        self.procs.grid(row=2, column=3, columnspan=2, sticky="nsew", padx=6, pady=6)
         self.proc_frame = ctk.CTkFrame(self.procs, fg_color="transparent")
         self.proc_frame.grid(row=1, column=0, sticky="ew", padx=16, pady=(0, 14))
         self.proc_frame.grid_columnconfigure(0, weight=1)
@@ -128,8 +139,26 @@ class DashboardPage(Page):
             nbytes = (n.bytes_recv - self._last_net.bytes_recv) + (n.bytes_sent - self._last_net.bytes_sent)
             self._last_disk, self._last_net = d, n
             freq = psutil.cpu_freq()
+            sens = {}
+            if self.sensors:
+                try:
+                    sens = self.sensors.read()
+                except Exception:  # noqa: BLE001
+                    sens = {}
+            g = Sensors.main_gpu(sens) if sens else None
+            if g:
+                gpu_sub = f"VRAM {fmt_bytes(g['vram_used'])}" if g.get("vram_used") else g["name"]
+                if g.get("fan"):
+                    gpu_sub += f" · {g['fan']} RPM"
+                gpu_val = (g["usage"], f"{g['usage']:.0f}%", gpu_sub)
+            else:
+                gpu_val = (0, "—", "sem leitura")
+            if self.visible:
+                self._set_temp("cpu", sens.get("cpu_temp"))
+                self._set_temp("gpu", g.get("temp") if g else None)
             vals = {
                 "cpu": (cpu, f"{cpu:.0f}%", f"{freq.current / 1000:.2f} GHz" if freq else ""),
+                "gpu": gpu_val,
                 "ram": (vm.percent, f"{vm.percent:.0f}%", f"{fmt_bytes(vm.used)} de {fmt_bytes(vm.total)}"),
                 "disk": (min(100, dbytes / (200 * 1024**2) * 100), f"{fmt_bytes(dbytes)}/s", "escala: 200 MB/s"),
                 "net": (min(100, nbytes / (12.5 * 1024**2) * 100), f"{fmt_bytes(nbytes)}/s", "escala: 100 Mbps"),
@@ -146,6 +175,14 @@ class DashboardPage(Page):
                 self.app.run_bg(_top_processes, self._show_procs)
         finally:
             self.after(1000, self._live)
+
+    def _set_temp(self, key, temp):
+        lbl = self.temps[key]
+        if temp is None:
+            lbl.configure(text="")
+            return
+        color = W.RED if temp >= 90 else W.ORANGE if temp >= 80 else W.YELLOW if temp >= 70 else W.GREEN
+        lbl.configure(text=f"{temp:.0f} °C", text_color=color)
 
     def _show_procs(self, procs):
         W.clear(self.proc_frame)

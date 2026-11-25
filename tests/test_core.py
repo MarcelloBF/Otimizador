@@ -97,6 +97,34 @@ def test_startup_hints():
     assert mk("Foo", '"C:\\a b\\foo.exe" /x').executable == r"C:\a b\foo.exe"
 
 
+def test_benchmark_score_and_compare():
+    from otimizador.core import benchmark as B
+
+    ref = {m.key: m.reference for m in B.METRICS}
+    assert B.score(ref) == 1000
+    faster = dict(ref, latency=ref["latency"] / 2, cpu_single=ref["cpu_single"] * 2)
+    assert B.score(faster) > 1000
+    cmp = B.compare({"results": ref}, {"results": faster})
+    assert round(cmp["latency"]) == 50  # menor é melhor -> +50%
+    assert round(cmp["cpu_single"]) == 100
+    assert round(cmp["mem_bw"]) == 0
+
+
+def test_latency_and_memory_benchmarks_run():
+    from otimizador.core import benchmark as B
+
+    lat = B.bench_latency(samples=50)
+    assert 0 <= lat["latency"] < 50
+    assert B.bench_memory(size_mb=16, rounds=2) > 0.1
+
+
+def test_sensors_read_does_not_crash():
+    from otimizador.core.sensors import Sensors
+
+    r = Sensors().read()
+    assert "gpus" in r and "cpu_temp" in r
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

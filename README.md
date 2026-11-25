@@ -12,7 +12,8 @@ Aplicativo para Windows 10/11 que lê as especificações do computador, diagnos
 
 | Página | Função |
 |---|---|
-| **Painel** | Nota de saúde (0–100), resumo do PC, CPU/RAM/disco/rede em tempo real, programas que mais usam RAM e botão **Otimizar agora** (1 clique). |
+| **Painel** | Nota de saúde (0–100), resumo do PC, CPU/GPU/RAM/disco/rede em tempo real com **temperatura da CPU e da placa de vídeo**, uso de VRAM, programas que mais usam RAM e botão **Otimizar agora** (1 clique). |
+| **Desempenho** | Teste de ~20 s (CPU 1 núcleo e todos, memória, disco sequencial e 4K sem cache, latência do sistema) com pontuação geral. Rode **antes e depois** de otimizar e veja a diferença real de cada item. |
 | **Especificações** | Windows, processador, placas de vídeo (VRAM real e driver), cada pente de RAM (velocidade nominal × configurada), discos (SSD/HDD, NVMe/SATA, saúde, temperatura e desgaste quando aberto como admin), volumes, placa-mãe/BIOS, Secure Boot, TPM, VBS, rede, monitores, energia. Exporta relatório `.txt`. |
 | **Diagnóstico** | Mais de 30 regras: Windows em HD, pouca RAM, single-channel, XMP/EXPO desligado, disco cheio ou com defeito, driver de vídeo antigo, monitor a 60 Hz ou ligado na placa-mãe, cabo de rede negociando 100 Mbps, plano de energia, Game DVR, HAGS, VBS, muitos programas na inicialização, lixo acumulado, PC sem reiniciar etc. Classifica o PC (Entrada / Intermediário / Alto desempenho) e indica o **melhor perfil** para ele. |
 | **Otimizações** | 27 ajustes em 6 categorias, com perfis *Recomendado*, *Gamer*, *Notebook* e *Máximo*. Cada item mostra risco, ganho real esperado e se precisa reiniciar. |
@@ -20,6 +21,12 @@ Aplicativo para Windows 10/11 que lê as especificações do computador, diagnos
 | **Inicialização** | Liga/desliga programas da inicialização (mesmo mecanismo do Gerenciador de Tarefas), com sugestão para cada um (manter / pode desativar). |
 | **Ferramentas** | Ponto de restauração, SFC, DISM, limpeza do WinSxS, TRIM/desfragmentação, chkdsk, flush DNS, reset de rede, relatórios de bateria e energia, atalhos do Windows. |
 | **Backup e restauração** | Lista tudo o que o app alterou e desfaz item por item ou tudo de uma vez. |
+
+### Sensores sem programas extras
+O uso da GPU e da VRAM vem dos contadores de desempenho do Windows, e a temperatura da placa de vídeo vem da mesma
+interface usada pelo Gerenciador de Tarefas (WDDM 2.4+), então funciona com NVIDIA, AMD e Intel sem instalar nada.
+A temperatura da CPU usa as zonas térmicas da placa-mãe ou, em processadores com vídeo integrado (Ryzen 7000/8000,
+APUs, Intel com UHD/Iris), o sensor do próprio chip.
 
 ## Segurança
 

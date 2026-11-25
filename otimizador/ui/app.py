@@ -23,6 +23,7 @@ NAV = [
     ("ferramentas", "", "Ferramentas"),
     ("backup", "", "Backup e restauração"),
 ]
+NAV.insert(3, ("desempenho", "", "Desempenho"))
 
 
 class App(ctk.CTk):
@@ -53,10 +54,11 @@ class App(ctk.CTk):
         self._build_admin_banner()
 
         from .pages_actions import BackupPage, CleanPage, StartupPage, ToolsPage, TweaksPage
+        from .page_bench import BenchPage
         from .pages_info import DashboardPage, DiagnosisPage, SpecsPage
 
         classes = {"painel": DashboardPage, "specs": SpecsPage, "diagnostico": DiagnosisPage,
-                   "otimizacoes": TweaksPage, "limpeza": CleanPage, "inicializacao": StartupPage,
+                   "desempenho": BenchPage, "otimizacoes": TweaksPage, "limpeza": CleanPage, "inicializacao": StartupPage,
                    "ferramentas": ToolsPage, "backup": BackupPage}
         self.pages = {}
         for key, cls in classes.items():
