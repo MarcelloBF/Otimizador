@@ -13,6 +13,7 @@ Aplicativo para Windows 10/11 que lê as especificações do computador, diagnos
 | Página | Função |
 |---|---|
 | **Painel** | Nota de saúde (0–100), resumo do PC, CPU/GPU/RAM/disco/rede em tempo real com **temperatura da CPU e da placa de vídeo**, uso de VRAM, programas que mais usam RAM e botão **Otimizar agora** (1 clique). |
+| **Modo Jogo** | Antes de jogar, fecha programas pesados em segundo plano (Teams, OneDrive, Ollama, navegadores se você quiser) mostrando quanto de RAM cada um usa, e liga o plano de energia Alto desempenho. Ao desativar, volta o plano anterior e reabre os programas. Steam, Discord, drivers e antivírus nunca são fechados. |
 | **Desempenho** | Teste de ~20 s (CPU 1 núcleo e todos, memória, disco sequencial e 4K sem cache, latência do sistema) com pontuação geral. Rode **antes e depois** de otimizar e veja a diferença real de cada item. |
 | **Especificações** | Windows, processador, placas de vídeo (VRAM real e driver), cada pente de RAM (velocidade nominal × configurada), discos (SSD/HDD, NVMe/SATA, saúde, temperatura e desgaste quando aberto como admin), volumes, placa-mãe/BIOS, Secure Boot, TPM, VBS, rede, monitores, energia. Exporta relatório `.txt`. |
 | **Diagnóstico** | Mais de 30 regras: Windows em HD, pouca RAM, single-channel, XMP/EXPO desligado, disco cheio ou com defeito, driver de vídeo antigo, monitor a 60 Hz ou ligado na placa-mãe, cabo de rede negociando 100 Mbps, plano de energia, Game DVR, HAGS, VBS, muitos programas na inicialização, lixo acumulado, PC sem reiniciar etc. Classifica o PC (Entrada / Intermediário / Alto desempenho) e indica o **melhor perfil** para ele. |
@@ -28,6 +29,9 @@ O uso da GPU e da VRAM vem dos contadores de desempenho do Windows, e a temperat
 interface usada pelo Gerenciador de Tarefas (WDDM 2.4+), então funciona com NVIDIA, AMD e Intel sem instalar nada.
 A temperatura da CPU usa as zonas térmicas da placa-mãe ou, em processadores com vídeo integrado (Ryzen 7000/8000,
 APUs, Intel com UHD/Iris), o sensor do próprio chip.
+
+### Atualização automática
+Ao abrir, o app verifica no GitHub se existe versão nova (no máximo a cada 6 horas) e mostra um aviso no topo. "Atualizar agora" baixa o novo `Otimizador.exe`, confere o SHA-256 publicado pelo GitHub, troca o arquivo e reabre o programa.
 
 ## Segurança
 

@@ -29,6 +29,8 @@ class UpdatesPage(Page):
         self.update_btn.pack(side="left", padx=6)
         self.scan_btn = W.button(self.header.actions, "Verificar de novo", self.scan, "secondary", width=150)
         self.scan_btn.pack(side="left")
+        W.button(self.header.actions, "Versão do Otimizador", lambda: self.app.check_update(force=True), "secondary",
+                 width=170).pack(side="left", padx=(6, 0))
 
         # ---- programas
         self.prog = W.Card(self.body, "Programas")

@@ -175,6 +175,43 @@ def test_winget_exit_codes_and_drivers():
     assert d[1]["status"] == "missing"
 
 
+def test_selfupdate_versions_and_release_info():
+    from otimizador.core import selfupdate as S
+
+    assert S.is_newer("v1.10.0", "1.9.9") and not S.is_newer("1.2.0", "1.2.0") and not S.is_newer("1.1", "1.2.0")
+    info = S.release_info({"tag_name": "v2.0.0", "html_url": "u", "assets": [
+        {"name": "outro.zip", "browser_download_url": "x"},
+        {"name": "Otimizador.exe", "browser_download_url": "d", "size": 10, "digest": "sha256:ABC"}]})
+    assert info == {"version": "2.0.0", "url": "u", "notes": "", "asset_url": "d", "asset_size": 10, "sha256": "abc"}
+    assert not S.can_self_update(info)  # rodando pelo Python, não pelo .exe
+
+
+def test_gamemode_close_and_state(monkeypatch=None):
+    import subprocess as sp
+
+    from otimizador.core import gamemode as G
+
+    tmp = pathlib.Path(tempfile.mkdtemp())
+    old_dd, old_set, old_active = G.data_dir, G.T._set_scheme, G.T._active_scheme
+    calls = []
+    G.data_dir = lambda: tmp
+    G.T._set_scheme = calls.append
+    G.T._active_scheme = lambda: G.T.BALANCED
+    proc = sp.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
+    try:
+        c = G.Candidate("python.exe", "Teste", True, "", pids=[proc.pid], exe=sys.executable)
+        assert G._packaged_app_id(sys.executable) is None
+        st = G.activate([c], power=True)
+        assert proc.poll() is not None, "processo deveria ter sido fechado"
+        assert G.is_active() and st["previous_plan"] == G.T.BALANCED and calls[-1] == G.T.HIGH_PERF
+        assert st["closed"] == [{"name": "Teste", "exe": sys.executable}]
+        G.deactivate(reopen_apps=False)
+        assert calls[-1] == G.T.BALANCED and not G.is_active()
+    finally:
+        proc.kill()
+        G.data_dir, G.T._set_scheme, G.T._active_scheme = old_dd, old_set, old_active
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

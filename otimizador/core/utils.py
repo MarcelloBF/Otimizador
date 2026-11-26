@@ -11,7 +11,7 @@ from pathlib import Path
 CREATE_NO_WINDOW = 0x08000000
 
 APP_NAME = "Otimizador"
-APP_VERSION = "1.2.0"
+APP_VERSION = "1.3.0"
 
 
 def data_dir() -> Path:
