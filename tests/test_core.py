@@ -212,6 +212,56 @@ def test_gamemode_close_and_state(monkeypatch=None):
         G.data_dir, G.T._set_scheme, G.T._active_scheme = old_dd, old_set, old_active
 
 
+def _pc(cpu, gpu, ram_gb=16, sticks=2, ram_type="DDR4", disk=("SSD", "NVMe"), res_w=1920, hz=144, laptop=False,
+        socket="", used=50):
+    G = 1024**3
+    return {
+        "cpu": [{"name": cpu, "socket": socket}],
+        "gpu": [{"name": gpu, "vram": 8 * G, "res_w": res_w, "hz": hz}],
+        "mem": [{"capacity": ram_gb // sticks * G, "type_name": ram_type, "bank": f"CH{i}"} for i in range(sticks)],
+        "mem_slots": 4, "ram_total": ram_gb * G, "ram_used_pct": used, "is_laptop": laptop,
+        "disks": [{"name": "Disco", "media": disk[0], "bus": disk[1], "system": True}],
+        "volumes": [{"letter": "C", "free": 200 * G}],
+    }
+
+
+def test_upgrade_advisor_profiles():
+    from otimizador.core import upgrades as UP
+
+    # Ryzen 5 7600 + RX 7600 em 1080p: placa de vídeo é o gargalo, sugere placas compatíveis e 9800X3D na mesma placa
+    p = UP.analyze(_pc("AMD Ryzen 5 7600 6-Core Processor", "AMD Radeon RX 7600", ram_type="DDR5"))
+    assert p.bottleneck == "gpu" and p.recs[0].id == "gpu"
+    assert any("9800X3D" in b for r in p.recs if r.id == "cpu" for b in r.buy)
+    assert p.combos[-1].name == "Máxima" and any("9070 XT" in x or "5070 Ti" in x for x in p.combos[-1].parts)
+
+    # PC antigo com HD e 8 GB em um pente: SSD primeiro, depois memória em dual-channel, nova plataforma
+    p = UP.analyze(_pc("Intel(R) Core(TM) i5-7400 CPU", "NVIDIA GeForce GTX 1060 6GB", ram_gb=8, sticks=1,
+                       disk=("HDD", "SATA"), socket="LGA1151"))
+    ids = [r.id for r in p.recs]
+    assert ids[0] == "ssd" and ids[1] == "ram" and "platform" in ids
+    assert "Mais 1 pente" in p.recs[1].buy[0]
+
+    # Processador fraco com placa topo em 1080p: gargalo é o processador
+    p = UP.analyze(_pc("AMD Ryzen 5 3600 6-Core Processor", "NVIDIA GeForce RTX 4090"))
+    assert p.bottleneck == "cpu" and p.recs[0].id == "cpu"
+    assert "5800X3D" in p.recs[0].title
+
+    # Notebook: só memória e SSD
+    p = UP.analyze(_pc("Intel(R) Core(TM) i5-1235U", "Intel(R) Iris(R) Xe Graphics", ram_gb=8, laptop=True))
+    assert p.bottleneck == "notebook" and {r.category for r in p.recs} <= {"ram", "storage"}
+
+    # Mesmo número, marcas diferentes: i5-7600 (LGA1151) não é o Ryzen 5 7600 (AM5)
+    assert UP.identify_cpu("Intel(R) Core(TM) i5-7600 CPU @ 3.50GHz").extra["platform"] == "LGA1151"
+    assert UP.identify_cpu("AMD Ryzen 5 7600 6-Core Processor").extra["platform"] == "AM5"
+    # 7ª geração não recebe sugestão de i9-9900K (a placa não aceita)
+    p = UP.analyze(_pc("Intel(R) Core(TM) i5-7400 CPU", "NVIDIA GeForce RTX 3060", socket="LGA1151"))
+    assert not any("9900K" in r.title for r in p.recs)
+
+    # Nomes desconhecidos não quebram a análise
+    p = UP.analyze(_pc("Processador Misterioso", "Placa Estranha"))
+    assert p.verdict and p.balance
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

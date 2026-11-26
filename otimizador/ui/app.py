@@ -19,6 +19,7 @@ NAV = [
     ("specs", "\uE7F8", "Especificações"),
     ("diagnostico", "\uE9D9", "Diagnóstico"),
     ("desempenho", "\uEC4A", "Desempenho"),
+    ("upgrades", "\uE74A", "Upgrades"),
     ("otimizacoes", "\uE945", "Otimizações"),
     ("limpeza", "\uE74D", "Limpeza"),
     ("inicializacao", "\uE7E8", "Inicialização"),
@@ -65,10 +66,11 @@ class App(ctk.CTk):
         from .page_bench import BenchPage
         from .page_game import GamePage
         from .page_updates import UpdatesPage
+        from .page_upgrades import UpgradesPage
         from .pages_info import DashboardPage, DiagnosisPage, SpecsPage
 
         classes = {"painel": DashboardPage, "jogo": GamePage, "specs": SpecsPage, "diagnostico": DiagnosisPage,
-                   "desempenho": BenchPage, "otimizacoes": TweaksPage, "limpeza": CleanPage, "inicializacao": StartupPage,
+                   "desempenho": BenchPage, "upgrades": UpgradesPage, "otimizacoes": TweaksPage, "limpeza": CleanPage, "inicializacao": StartupPage,
                    "atualizacoes": UpdatesPage,
                    "ferramentas": ToolsPage, "backup": BackupPage}
         self.pages = {}
@@ -97,7 +99,7 @@ class App(ctk.CTk):
         ctk.CTkFrame(self, fg_color=W.BORDER, corner_radius=0, width=1).grid(row=0, column=0, sticky="nse")
 
         logo = ctk.CTkFrame(bar, fg_color="transparent")
-        logo.grid(row=0, column=0, sticky="ew", padx=18, pady=(20, 10))
+        logo.grid(row=0, column=0, sticky="ew", padx=18, pady=(18, 4))
         ctk.CTkLabel(logo, text="\uE945", width=40, height=40, corner_radius=11, fg_color=W.ACCENT, text_color="white",
                      font=ctk.CTkFont(W.ICON_FONT, 19)).pack(side="left")
         txt = ctk.CTkFrame(logo, fg_color="transparent")
@@ -111,9 +113,9 @@ class App(ctk.CTk):
         for key, icon, label in NAV:
             if key in SECTIONS:
                 ctk.CTkLabel(bar, text=SECTIONS[key], font=W.font(10, "bold"), text_color="#5b6479", anchor="w",
-                             height=18).grid(row=row, column=0, sticky="ew", padx=28, pady=(12, 2))
+                             height=16).grid(row=row, column=0, sticky="ew", padx=28, pady=(10, 2))
                 row += 1
-            item = ctk.CTkFrame(bar, fg_color="transparent", corner_radius=9, height=37, cursor="hand2")
+            item = ctk.CTkFrame(bar, fg_color="transparent", corner_radius=9, height=34, cursor="hand2")
             item.grid(row=row, column=0, sticky="ew", padx=12, pady=1)
             row += 1
             item.grid_propagate(False)
@@ -135,17 +137,18 @@ class App(ctk.CTk):
         bar.grid_rowconfigure(row, weight=1)
 
         foot = ctk.CTkFrame(bar, fg_color=W.CARD, corner_radius=12, border_width=1, border_color=W.BORDER)
-        foot.grid(row=row + 1, column=0, sticky="ew", padx=12, pady=(8, 14))
-        foot.grid_columnconfigure(0, weight=1)
+        foot.grid(row=row + 1, column=0, sticky="ew", padx=12, pady=(6, 12))
+        foot.grid_columnconfigure(1, weight=1)
         admin = is_admin()
-        ctk.CTkLabel(foot, text=("● Administrador" if admin else "● Modo limitado"), font=W.font(11, "bold"),
-                     text_color=W.GREEN if admin else W.YELLOW, anchor="w", height=18).grid(row=0, column=0, sticky="w",
-                                                                                           padx=12, pady=(10, 0))
-        self.status = ctk.CTkLabel(foot, text="Pronto.", font=W.font(11), text_color=W.MUTED, wraplength=190,
+        ctk.CTkLabel(foot, text="●", font=W.font(11), text_color=W.GREEN if admin else W.YELLOW, width=10,
+                     height=18).grid(row=0, column=0, sticky="nw", padx=(12, 6), pady=(8, 0))
+        self.status = ctk.CTkLabel(foot, text="Pronto.", font=W.font(11), text_color=W.MUTED, wraplength=170,
                                    justify="left", anchor="w")
-        self.status.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 8))
+        self.status.grid(row=0, column=1, sticky="ew", padx=(0, 10), pady=(8, 8))
+        self.status_idle = "Administrador · pronto." if admin else "Modo limitado · pronto."
+        self.status.configure(text=self.status_idle)
         self.status_bar = ctk.CTkProgressBar(foot, mode="indeterminate", height=3, progress_color=W.ACCENT, fg_color=W.BORDER)
-        self.status_bar.grid(row=2, column=0, sticky="ew", padx=12, pady=(0, 10))
+        self.status_bar.grid(row=1, column=0, columnspan=2, sticky="ew", padx=12, pady=(0, 10))
         self.status_bar.grid_remove()
 
     def _alert(self, color: str, icon: str, text: str):
@@ -309,7 +312,7 @@ class App(ctk.CTk):
         messagebox.showerror(APP_NAME, f"Ocorreu um erro:\n\n{e}")
 
     def set_status(self, text: str, busy: bool = False):
-        self.status.configure(text=text or "Pronto.")
+        self.status.configure(text=text or self.status_idle)
         if busy:
             self.status_bar.grid()
             self.status_bar.start()
