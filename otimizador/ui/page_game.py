@@ -71,7 +71,7 @@ class GamePage(Page):
 
         con = W.Card(self.body, "Registro")
         con.grid(row=3, column=0, sticky="ew", padx=6, pady=6)
-        self.console = ctk.CTkTextbox(con, font=ctk.CTkFont("Cascadia Mono", 12), fg_color="#0a0c10",
+        self.console = ctk.CTkTextbox(con, font=ctk.CTkFont("Cascadia Mono", 12), fg_color=W.CONSOLE,
                                       text_color="#c8d0e0", wrap="word", height=110)
         self.console.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 12))
 
@@ -123,13 +123,13 @@ class GamePage(Page):
             self.status_text.configure(text=parts[0] + " " + "; ".join(parts[1:]) + (". " if len(parts) > 1 else "")
                                        + "Desative quando terminar de jogar.")
             self.dot.configure(text_color=W.GREEN)
-            self.toggle_btn.configure(text="Desativar Modo Jogo", fg_color="#b91c1c", hover_color="#991b1b")
+            self.toggle_btn.configure(text="Desativar Modo Jogo", fg_color=W.DANGER, hover_color=W.DANGER_HOVER)
             self.list_card.grid_remove()
         else:
             self.status_title.configure(text="Desligado")
             self.status_text.configure(text="Marque o que fechar e clique em Ativar Modo Jogo antes de abrir o jogo.")
             self.dot.configure(text_color=W.GRAY)
-            self.toggle_btn.configure(text="Ativar Modo Jogo", fg_color="#16a34a", hover_color="#15803d")
+            self.toggle_btn.configure(text="Ativar Modo Jogo", fg_color=W.SUCCESS, hover_color=W.SUCCESS_HOVER)
             self.list_card.grid()
         self.app.set_game_indicator(bool(st.get("active")))
 

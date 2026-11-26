@@ -73,7 +73,7 @@ class UpdatesPage(Page):
         self.stop_btn = W.button(cbar, "Parar", self._stop, "danger", width=80)
         self.stop_btn.pack(side="right")
         self.stop_btn.configure(state="disabled")
-        self.console = ctk.CTkTextbox(con, font=ctk.CTkFont("Cascadia Mono", 12), fg_color="#0a0c10",
+        self.console = ctk.CTkTextbox(con, font=ctk.CTkFont("Cascadia Mono", 12), fg_color=W.CONSOLE,
                                       text_color="#c8d0e0", wrap="word", height=170)
         self.console.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 12))
 

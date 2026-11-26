@@ -14,22 +14,26 @@ from ..core.utils import APP_NAME, APP_VERSION, data_dir, fmt_bytes, is_admin, o
 from . import widgets as W
 
 NAV = [
-    ("painel", "", "Painel"),
-    ("specs", "", "Especificações"),
-    ("diagnostico", "", "Diagnóstico"),
-    ("otimizacoes", "", "Otimizações"),
-    ("limpeza", "", "Limpeza"),
-    ("inicializacao", "", "Inicialização"),
-    ("ferramentas", "", "Ferramentas"),
-    ("backup", "", "Backup e restauração"),
+    ("painel", "\uE80F", "Painel"),
+    ("jogo", "\uE7FC", "Modo Jogo"),
+    ("specs", "\uE7F8", "Especificações"),
+    ("diagnostico", "\uE9D9", "Diagnóstico"),
+    ("desempenho", "\uEC4A", "Desempenho"),
+    ("otimizacoes", "\uE945", "Otimizações"),
+    ("limpeza", "\uE74D", "Limpeza"),
+    ("inicializacao", "\uE7E8", "Inicialização"),
+    ("atualizacoes", "\uE895", "Atualizações"),
+    ("ferramentas", "\uE90F", "Ferramentas"),
+    ("backup", "\uE777", "Backup e restauração"),
 ]
-NAV.insert(3, ("desempenho", "", "Desempenho"))
-NAV.insert(7, ("atualizacoes", "", "Atualizações"))
-NAV.insert(1, ("jogo", "", "Modo Jogo"))
+# Título de seção mostrado antes do item
+SECTIONS = {"painel": "VISÃO GERAL", "otimizacoes": "OTIMIZAR", "ferramentas": "SISTEMA"}
+NAV_ACTIVE_BG = W.tint(W.ACCENT, W.SIDEBAR, 0.14)
 
 
 class App(ctk.CTk):
     def __init__(self):
+        W.apply_theme()
         super().__init__()
         ctk.set_appearance_mode("dark")
         self.title(f"{APP_NAME} — Otimizador de PC")
@@ -73,6 +77,7 @@ class App(ctk.CTk):
             page.grid(row=1, column=0, sticky="nsew")
             page.grid_remove()
             self.pages[key] = page
+            page.header.set_icon(next(icon for k, icon, _ in NAV if k == key))
         self.current = None
         self.show("painel")
 
@@ -84,59 +89,92 @@ class App(ctk.CTk):
 
     # ------------------------------------------------------------ layout
     def _build_sidebar(self):
-        bar = ctk.CTkFrame(self, fg_color=W.SIDEBAR, corner_radius=0, width=230)
+        bar = ctk.CTkFrame(self, fg_color=W.SIDEBAR, corner_radius=0, width=236)
         bar.grid(row=0, column=0, sticky="nsw")
         bar.grid_propagate(False)
         bar.grid_columnconfigure(0, weight=1)
+        # borda direita sutil
+        ctk.CTkFrame(self, fg_color=W.BORDER, corner_radius=0, width=1).grid(row=0, column=0, sticky="nse")
+
         logo = ctk.CTkFrame(bar, fg_color="transparent")
-        logo.grid(row=0, column=0, sticky="ew", padx=18, pady=(22, 20))
-        ctk.CTkLabel(logo, text="", font=ctk.CTkFont(W.ICON_FONT, 26), text_color=W.ACCENT).pack(side="left")
+        logo.grid(row=0, column=0, sticky="ew", padx=18, pady=(20, 10))
+        ctk.CTkLabel(logo, text="\uE945", width=40, height=40, corner_radius=11, fg_color=W.ACCENT, text_color="white",
+                     font=ctk.CTkFont(W.ICON_FONT, 19)).pack(side="left")
         txt = ctk.CTkFrame(logo, fg_color="transparent")
-        txt.pack(side="left", padx=10)
-        ctk.CTkLabel(txt, text=APP_NAME, font=W.font(19, "bold"), text_color=W.TEXT, anchor="w").pack(anchor="w")
-        ctk.CTkLabel(txt, text=f"v{APP_VERSION}", font=W.font(11), text_color=W.MUTED, anchor="w").pack(anchor="w")
+        txt.pack(side="left", padx=12)
+        ctk.CTkLabel(txt, text=APP_NAME, font=W.font(18, "bold"), text_color=W.TEXT, anchor="w", height=22).pack(anchor="w")
+        ctk.CTkLabel(txt, text=f"Otimizador de PC · v{APP_VERSION}", font=W.font(11), text_color=W.MUTED, anchor="w",
+                     height=16).pack(anchor="w")
 
         self.nav_buttons = {}
-        for i, (key, icon, label) in enumerate(NAV, start=1):
-            item = ctk.CTkFrame(bar, fg_color="transparent", corner_radius=8, height=42, cursor="hand2")
-            item.grid(row=i, column=0, sticky="ew", padx=12, pady=2)
+        row = 1
+        for key, icon, label in NAV:
+            if key in SECTIONS:
+                ctk.CTkLabel(bar, text=SECTIONS[key], font=W.font(10, "bold"), text_color="#5b6479", anchor="w",
+                             height=18).grid(row=row, column=0, sticky="ew", padx=28, pady=(12, 2))
+                row += 1
+            item = ctk.CTkFrame(bar, fg_color="transparent", corner_radius=9, height=37, cursor="hand2")
+            item.grid(row=row, column=0, sticky="ew", padx=12, pady=1)
+            row += 1
             item.grid_propagate(False)
             item.grid_rowconfigure(0, weight=1)
-            icon_lbl = ctk.CTkLabel(item, text=icon, font=ctk.CTkFont(W.ICON_FONT, 16), text_color=W.MUTED, width=24)
-            icon_lbl.grid(row=0, column=0, padx=(14, 10))
-            text_lbl = ctk.CTkLabel(item, text=label, font=W.font(14), text_color=W.MUTED, anchor="w")
-            text_lbl.grid(row=0, column=1, sticky="w")
+            item.grid_columnconfigure(2, weight=1)
+            mark = ctk.CTkFrame(item, fg_color=W.ACCENT, corner_radius=2, width=3, height=18)
+            icon_lbl = ctk.CTkLabel(item, text=icon, font=ctk.CTkFont(W.ICON_FONT, 15), text_color=W.MUTED, width=22)
+            icon_lbl.grid(row=0, column=1, padx=(12, 10))
+            text_lbl = ctk.CTkLabel(item, text=label, font=W.font(13), text_color=W.MUTED, anchor="w")
+            text_lbl.grid(row=0, column=2, sticky="w")
             for w in (item, icon_lbl, text_lbl):
                 w.bind("<Button-1>", lambda e, k=key: self.show(k))
                 w.bind("<Enter>", lambda e, k=key: self._hover(k, True))
                 w.bind("<Leave>", lambda e, k=key: self._hover(k, False))
-            self.nav_buttons[key] = (item, icon_lbl, text_lbl)
+            self.nav_buttons[key] = (item, icon_lbl, text_lbl, mark)
             if key == "jogo":
-                self.game_dot = ctk.CTkLabel(item, text="●", font=W.font(12), text_color=W.GREEN, width=16)
-        bar.grid_rowconfigure(len(NAV) + 1, weight=1)
-        self.status = ctk.CTkLabel(bar, text="", font=W.font(11), text_color=W.MUTED, wraplength=200, justify="left", anchor="w")
-        self.status.grid(row=len(NAV) + 2, column=0, sticky="ew", padx=18, pady=(0, 6))
-        self.status_bar = ctk.CTkProgressBar(bar, mode="indeterminate", height=4, progress_color=W.ACCENT, fg_color=W.SIDEBAR)
-        self.status_bar.grid(row=len(NAV) + 3, column=0, sticky="ew", padx=18, pady=(0, 18))
+                self.game_dot = ctk.CTkLabel(item, text=" ATIVO ", font=W.font(9, "bold"), text_color=W.light(W.GREEN, 0.3),
+                                             fg_color=W.tint(W.GREEN, W.SIDEBAR, 0.2), corner_radius=6, height=18)
+        bar.grid_rowconfigure(row, weight=1)
+
+        foot = ctk.CTkFrame(bar, fg_color=W.CARD, corner_radius=12, border_width=1, border_color=W.BORDER)
+        foot.grid(row=row + 1, column=0, sticky="ew", padx=12, pady=(8, 14))
+        foot.grid_columnconfigure(0, weight=1)
+        admin = is_admin()
+        ctk.CTkLabel(foot, text=("● Administrador" if admin else "● Modo limitado"), font=W.font(11, "bold"),
+                     text_color=W.GREEN if admin else W.YELLOW, anchor="w", height=18).grid(row=0, column=0, sticky="w",
+                                                                                           padx=12, pady=(10, 0))
+        self.status = ctk.CTkLabel(foot, text="Pronto.", font=W.font(11), text_color=W.MUTED, wraplength=190,
+                                   justify="left", anchor="w")
+        self.status.grid(row=1, column=0, sticky="ew", padx=12, pady=(0, 8))
+        self.status_bar = ctk.CTkProgressBar(foot, mode="indeterminate", height=3, progress_color=W.ACCENT, fg_color=W.BORDER)
+        self.status_bar.grid(row=2, column=0, sticky="ew", padx=12, pady=(0, 10))
         self.status_bar.grid_remove()
 
+    def _alert(self, color: str, icon: str, text: str):
+        """Faixa de aviso arredondada no topo do conteúdo."""
+        f = ctk.CTkFrame(self.top, fg_color=W.tint(color, W.BG, 0.10), corner_radius=12, border_width=1,
+                         border_color=W.tint(color, W.BG, 0.35))
+        f.grid_columnconfigure(1, weight=1)
+        ctk.CTkLabel(f, text=icon, font=ctk.CTkFont(W.ICON_FONT, 15), text_color=W.light(color, 0.2), width=20).grid(
+            row=0, column=0, padx=(16, 10), pady=10)
+        lbl = ctk.CTkLabel(f, text=text, text_color=W.light(color, 0.45), font=W.font(12), anchor="w", justify="left")
+        lbl.grid(row=0, column=1, sticky="w")
+        return f, lbl
+
     def _build_admin_banner(self):
-        self.banner = ctk.CTkFrame(self.top, fg_color="#3a2a0a", corner_radius=0, height=44)
         if is_admin():
+            self.banner = None
             return
-        self.banner.pack(fill="x")
-        self.banner.grid_columnconfigure(0, weight=1)
-        ctk.CTkLabel(self.banner, text="⚠  Executando sem privilégios de administrador — otimizações do sistema, serviços e "
-                                       "algumas limpezas ficarão bloqueadas.", text_color="#fcd34d", font=W.font(12),
-                     anchor="w").grid(row=0, column=0, sticky="w", padx=20, pady=8)
-        W.button(self.banner, "Reabrir como administrador", self._elevate, "secondary", width=210).grid(row=0, column=1, padx=12, pady=6)
+        self.banner, _ = self._alert(W.YELLOW, "\uE7BA", "Sem administrador: otimizações do sistema, serviços e algumas "
+                                                          "limpezas ficam bloqueadas.")
+        self.banner.pack(fill="x", padx=24, pady=(14, 0))
+        W.button(self.banner, "Reabrir como administrador", self._elevate, "secondary", width=200, height=32).grid(
+            row=0, column=2, padx=8, pady=8)
 
     def set_game_indicator(self, active: bool):
         dot = getattr(self, "game_dot", None)
         if dot is None:
             return
         if active:
-            dot.grid(row=0, column=2, padx=(6, 0))
+            dot.grid(row=0, column=3, padx=(4, 10))
         else:
             dot.grid_remove()
 
@@ -157,17 +195,16 @@ class App(ctk.CTk):
     def _show_update_banner(self, info: dict):
         if getattr(self, "update_banner", None) is not None:
             self.update_banner.destroy()
-        b = self.update_banner = ctk.CTkFrame(self.top, fg_color="#0c2a4d", corner_radius=0)
-        b.pack(fill="x")
-        b.grid_columnconfigure(0, weight=1)
-        self.update_label = ctk.CTkLabel(b, text=f"Nova versão disponível: v{info['version']} (você tem v{APP_VERSION}).",
-                                         text_color="#bfdbfe", font=W.font(12, "bold"), anchor="w")
-        self.update_label.grid(row=0, column=0, sticky="w", padx=20, pady=8)
-        W.button(b, "Novidades", lambda: open_url(info["url"]), "secondary", width=110).grid(row=0, column=1, padx=(0, 6))
-        self.update_btn = W.button(b, "Atualizar agora", lambda: self._self_update(info), "primary", width=150)
-        self.update_btn.grid(row=0, column=2, padx=(0, 6), pady=6)
+        b, self.update_label = self._alert(W.ACCENT, "\uE896",
+                                           f"Nova versão disponível: v{info['version']} (você tem v{APP_VERSION}).")
+        self.update_banner = b
+        b.pack(fill="x", padx=24, pady=(14, 0))
+        W.button(b, "Novidades", lambda: open_url(info["url"]), "secondary", width=110, height=32).grid(
+            row=0, column=2, padx=(0, 6))
+        self.update_btn = W.button(b, "Atualizar agora", lambda: self._self_update(info), "primary", width=150, height=32)
+        self.update_btn.grid(row=0, column=3, padx=(0, 4), pady=8)
         ctk.CTkButton(b, text="✕", width=32, height=32, corner_radius=8, fg_color="transparent", hover_color=W.CARD_HOVER,
-                      text_color="#bfdbfe", command=lambda: self._skip_update(info)).grid(row=0, column=3, padx=(0, 10))
+                      text_color=W.MUTED, command=lambda: self._skip_update(info)).grid(row=0, column=4, padx=(0, 8))
 
     def _skip_update(self, info: dict):
         if messagebox.askyesno(APP_NAME, f"Não avisar mais sobre a versão v{info['version']}?\n\n"
@@ -212,16 +249,21 @@ class App(ctk.CTk):
         if key == self.current:
             return
         self.nav_buttons[key][0].configure(fg_color=W.CARD_HOVER if inside else "transparent")
+        self.nav_buttons[key][2].configure(text_color=W.TEXT if inside else W.MUTED)
 
     def show(self, key: str):
         if self.current == key:
             return
         prev, self.current_nav = getattr(self, "current_nav", None), key
-        for k, (item, icon, text) in self.nav_buttons.items():
+        for k, (item, icon, text, mark) in self.nav_buttons.items():
             active = k == key
-            item.configure(fg_color=W.CARD if active else "transparent")
-            icon.configure(text_color=W.ACCENT if active else W.MUTED)
-            text.configure(text_color=W.TEXT if active else W.MUTED)
+            item.configure(fg_color=NAV_ACTIVE_BG if active else "transparent")
+            icon.configure(text_color=W.light(W.ACCENT, 0.15) if active else W.MUTED)
+            text.configure(text_color=W.TEXT if active else W.MUTED, font=W.font(13, "bold" if active else "normal"))
+            if active:
+                mark.grid(row=0, column=0, padx=(4, 0))
+            else:
+                mark.grid_remove()
         if self.current:
             self.pages[self.current].grid_remove()
         self.current = key
@@ -267,7 +309,7 @@ class App(ctk.CTk):
         messagebox.showerror(APP_NAME, f"Ocorreu um erro:\n\n{e}")
 
     def set_status(self, text: str, busy: bool = False):
-        self.status.configure(text=text)
+        self.status.configure(text=text or "Pronto.")
         if busy:
             self.status_bar.grid()
             self.status_bar.start()

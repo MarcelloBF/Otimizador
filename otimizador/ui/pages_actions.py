@@ -107,8 +107,8 @@ class TweaksPage(Page):
         top.grid(row=0, column=0, sticky="ew", padx=6, pady=(0, 6))
         ctk.CTkLabel(top, text="Perfil:", font=W.font(13, "bold"), text_color=W.TEXT).pack(side="left", padx=(0, 8))
         self.profile_btn = ctk.CTkSegmentedButton(top, values=list(tweaks.PROFILES.values()), command=self._on_profile,
-                                                  font=W.font(12), selected_color=W.ACCENT, selected_hover_color=W.ACCENT_HOVER,
-                                                  unselected_color=W.CARD, fg_color=W.CARD)
+                                                  font=W.font(12), selected_color=W.ACCENT, selected_hover_color=W.ACCENT_HOVER, height=34, corner_radius=9,
+                                                  unselected_color=W.CARD_HOVER, fg_color=W.CARD_HOVER)
         self.profile_btn.pack(side="left")
         self.rp_var = ctk.BooleanVar(value=True)
         ctk.CTkCheckBox(top, text="Criar ponto de restauração antes", variable=self.rp_var, font=W.font(12),
@@ -441,7 +441,7 @@ class ToolsPage(Page):
         self.stop_btn = W.button(bar, "Parar", self._stop, "danger", width=80)
         self.stop_btn.pack(side="right")
         self.stop_btn.configure(state="disabled")
-        self.console = ctk.CTkTextbox(con, font=ctk.CTkFont("Cascadia Mono", 12), fg_color="#0a0c10", text_color="#c8d0e0",
+        self.console = ctk.CTkTextbox(con, font=ctk.CTkFont("Cascadia Mono", 12), fg_color=W.CONSOLE, text_color="#c8d0e0",
                                       wrap="word", height=120)
         self.console.grid(row=1, column=0, sticky="nsew", padx=12, pady=(6, 12))
         self.running = False

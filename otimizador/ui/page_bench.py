@@ -53,8 +53,8 @@ class BenchPage(Page):
         row = ctk.CTkFrame(how, fg_color="transparent")
         row.grid(row=2, column=0, sticky="ew", padx=16, pady=(6, 14))
         ctk.CTkLabel(row, text="Este teste é:", font=W.font(13, "bold"), text_color=W.TEXT).pack(side="left", padx=(0, 8))
-        self.label_btn = ctk.CTkSegmentedButton(row, values=LABELS, font=W.font(12), selected_color=W.ACCENT,
-                                                selected_hover_color=W.ACCENT_HOVER, unselected_color=W.CARD, fg_color=W.CARD)
+        self.label_btn = ctk.CTkSegmentedButton(row, values=LABELS, font=W.font(12), selected_color=W.ACCENT, height=34, corner_radius=9,
+                                                selected_hover_color=W.ACCENT_HOVER, unselected_color=W.CARD_HOVER, fg_color=W.CARD_HOVER)
         self.label_btn.pack(side="left")
         self.progress_lbl = ctk.CTkLabel(row, text="", font=W.font(12), text_color=W.MUTED)
         self.progress_lbl.pack(side="left", padx=14)

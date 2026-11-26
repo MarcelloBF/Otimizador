@@ -77,10 +77,11 @@ class DashboardPage(Page):
         score_card.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
         self.ring = W.ScoreRing(score_card, size=160)
         self.ring.grid(row=0, column=0, pady=(16, 4))
-        self.tier_lbl = ctk.CTkLabel(score_card, text="", font=W.font(14, "bold"), text_color=W.TEXT)
-        self.tier_lbl.grid(row=1, column=0)
+        ctk.CTkLabel(score_card, text="CATEGORIA", font=W.font(10, "bold"), text_color=W.MUTED, height=14).grid(row=1, column=0)
+        self.tier_lbl = ctk.CTkLabel(score_card, text="", font=W.font(14, "bold"), text_color=W.TEXT, wraplength=170)
+        self.tier_lbl.grid(row=2, column=0)
         self.issues_lbl = ctk.CTkLabel(score_card, text="", font=W.font(12), text_color=W.MUTED)
-        self.issues_lbl.grid(row=2, column=0, pady=(0, 14))
+        self.issues_lbl.grid(row=3, column=0, pady=(0, 14))
 
         self.summary = W.Card(b, "Seu computador")
         self.summary.grid(row=0, column=1, columnspan=4, sticky="nsew", padx=6, pady=6)
@@ -88,16 +89,21 @@ class DashboardPage(Page):
         # --- Monitores ao vivo
         self.meters = {}
         self.temps = {}
-        for i, (key, label, color) in enumerate([("cpu", "Processador", W.ACCENT), ("gpu", "Placa de vídeo", W.RED),
-                                                 ("ram", "Memória RAM", "#a855f7"), ("disk", "Disco (leit.+escr.)", W.GREEN),
-                                                 ("net", "Rede (down+up)", W.YELLOW)]):
+        for i, (key, label, color, icon) in enumerate([
+                ("cpu", "Processador", W.ACCENT, "\uE950"), ("gpu", "Placa de vídeo", W.RED, "\uE7F4"),
+                ("ram", "Memória RAM", W.PURPLE, "\uEEA0"), ("disk", "Disco (leit.+escr.)", W.GREEN, "\uEDA2"),
+                ("net", "Rede (down+up)", W.YELLOW, "\uE968")]):
             c = W.Card(b)
             c.grid(row=1, column=i, sticky="nsew", padx=6, pady=6)
-            ctk.CTkLabel(c, text=label, font=W.font(12), text_color=W.MUTED, anchor="w").grid(row=0, column=0, sticky="w", padx=14, pady=(12, 0))
-            val = ctk.CTkLabel(c, text="—", font=W.font(22, "bold"), text_color=W.TEXT, anchor="w")
+            head = ctk.CTkFrame(c, fg_color="transparent")
+            head.grid(row=0, column=0, sticky="ew", padx=14, pady=(14, 2))
+            ctk.CTkLabel(head, text=icon, width=26, height=26, corner_radius=8, fg_color=W.tint(color, W.CARD, 0.18),
+                         text_color=W.light(color, 0.25), font=ctk.CTkFont(W.ICON_FONT, 13)).pack(side="left")
+            ctk.CTkLabel(head, text=label, font=W.font(12), text_color=W.MUTED, anchor="w").pack(side="left", padx=8)
+            val = ctk.CTkLabel(c, text="—", font=W.font(24, "bold"), text_color=W.TEXT, anchor="w")
             val.grid(row=1, column=0, sticky="w", padx=14)
             if key in ("cpu", "gpu"):
-                t = ctk.CTkLabel(c, text="", font=W.font(13, "bold"), text_color=W.MUTED, anchor="e")
+                t = ctk.CTkLabel(c, text="", font=W.font(12, "bold"), text_color=W.MUTED, corner_radius=8, height=22)
                 t.grid(row=1, column=0, sticky="e", padx=14)
                 self.temps[key] = t
             sub = ctk.CTkLabel(c, text="", font=W.font(11), text_color=W.MUTED, anchor="w")
@@ -179,10 +185,10 @@ class DashboardPage(Page):
     def _set_temp(self, key, temp):
         lbl = self.temps[key]
         if temp is None:
-            lbl.configure(text="")
+            lbl.configure(text="", fg_color="transparent")
             return
         color = W.RED if temp >= 90 else W.ORANGE if temp >= 80 else W.YELLOW if temp >= 70 else W.GREEN
-        lbl.configure(text=f"{temp:.0f} °C", text_color=color)
+        lbl.configure(text=f"  {temp:.0f} °C  ", text_color=W.light(color, 0.25), fg_color=W.tint(color, W.CARD, 0.18))
 
     def _show_procs(self, procs):
         W.clear(self.proc_frame)
@@ -191,7 +197,7 @@ class DashboardPage(Page):
             label = f"{name}" + (f"  ×{count}" if count > 1 else "")
             ctk.CTkLabel(self.proc_frame, text=label, font=W.font(12), text_color=W.TEXT, anchor="w").grid(row=i * 2, column=0, sticky="w")
             ctk.CTkLabel(self.proc_frame, text=fmt_bytes(rss), font=W.font(12, "bold"), text_color=W.MUTED).grid(row=i * 2, column=1, sticky="e")
-            bar = ctk.CTkProgressBar(self.proc_frame, height=5, progress_color="#a855f7", fg_color=W.BORDER)
+            bar = ctk.CTkProgressBar(self.proc_frame, height=5, progress_color=W.PURPLE, fg_color=W.BORDER)
             bar.set(min(1, rss / total * 4))
             bar.grid(row=i * 2 + 1, column=0, columnspan=2, sticky="ew", pady=(0, 6))
 
@@ -200,7 +206,7 @@ class DashboardPage(Page):
         if not a or not s:
             return
         self.ring.set(a.score)
-        self.tier_lbl.configure(text=f"Categoria: {a.tier}")
+        self.tier_lbl.configure(text=a.tier)
         serious = sum(1 for r in a.recs if r.severity in ("crítico", "alto"))
         self.issues_lbl.configure(text=f"{len(a.recs)} sugestões · {serious} importantes")
 
